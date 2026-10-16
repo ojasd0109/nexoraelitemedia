@@ -106,55 +106,6 @@ function Header() {
   </div>{open && <nav className="mobile-nav" aria-label="Mobile navigation">{links.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={16}/></a>)}<a href="#contact" onClick={() => setOpen(false)}>Contact<ArrowRight size={16}/></a></nav>}</header>;
 }
 
-const legalPolicies = [
-  {
-    id: "terms-conditions",
-    title: "Terms & Conditions",
-    items: [
-      { label: "Scope of Services & Content Deliverables", text: "The Agency agrees to manage and execute the influencer marketing campaigns as outlined in the specific Campaign Brief or Statement of Work (SOW). Both the Client and the Influencer must strictly adhere to all agreed-upon deadlines, content guidelines, and Federal Trade Commission (FTC) endorsement guidelines (e.g., clear and conspicuous placement of #ad or #sponsored); failure to comply may result in immediate campaign suspension." },
-      { label: "Intellectual Property & Usage Rights", text: "Unless explicitly agreed otherwise in writing, the Influencer retains ownership of the created content, while the Client is granted a non-exclusive, worldwide, royalty-free license to use, repurpose, and amplify the content across their official digital channels for a period of six (6) months following the campaign end date." },
-      { label: "Limitation of Liability & Governing Law", text: "The Agency’s total liability for any claim arising out of these terms shall not exceed the total fees paid by the Client to the Agency for the specific campaign. These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Delaware (or your specific registration state), without regard to conflict of law principles." },
-    ],
-  },
-  {
-    id: "privacy-policy",
-    title: "Privacy Policy",
-    items: [
-      { label: "Information We Collect", text: "We collect personal and professional data necessary to run our marketing operations, including names, email addresses, phone numbers, social media handles, audience demographic metrics, and financial information for processing payments from both Brands and Influencers." },
-      { label: "How We Use Your Data", text: "The collected information is used exclusively to facilitate brand-influencer matchmaking, execute and track marketing campaigns, process billing and payouts, verify social media analytics, and communicate critical updates regarding our services." },
-      { label: "US State Privacy Compliance & User Rights", text: "We comply with applicable US privacy regulations, including the California Consumer Privacy Act (CCPA) and other state privacy laws. We do not sell your personal data; it is shared only with verified third-party processors. Users retain the right to access, delete, opt-out of data sharing, or request the permanent deletion of their personal data from our systems at any time." },
-    ],
-  },
-  {
-    id: "refund-policy",
-    title: "Refund & Cancellation Policy",
-    items: [
-      { label: "Non-Refundable Retainers & Onboarding Fees", text: "All initial strategy development charges, platform onboarding fees, and monthly agency retainers are 100% non-refundable once the onboarding process has begun or work on the campaign strategy has commenced." },
-      { label: "Campaign Cancellation & Creator Commitments", text: "Clients may cancel a campaign by providing a written 30-day notice. However, the Client remains fully liable for any portion of the budget that has already been legally or financially committed to influencers for scheduled content creation and cannot be clawed back." },
-      { label: "Dispute Resolution & Service Credits", text: "Refunds will not be issued for missed influencer performance metrics or organic reach fluctuations. In the event that an influencer fails to deliver a scheduled post entirely, the Agency will work to secure a replacement creator or issue a proportional service credit toward a future campaign." },
-    ],
-  },
-] as const;
-
-function LegalPolicies() {
-  return (
-    <section className="legal-policy-section section-shell" aria-label="Legal policies">
-      {legalPolicies.map((policy) => (
-        <article key={policy.id} id={policy.id} className="legal-policy">
-          <h3>{policy.title}</h3>
-          <ul>
-            {policy.items.map((item) => (
-              <li key={item.label}>
-                <strong>{item.label}:</strong> {item.text}
-              </li>
-            ))}
-          </ul>
-        </article>
-      ))}
-    </section>
-  );
-}
-
 const proofGallery = [
   { src: proof12, client: "Angela Duckworth", metric: "6.2K followers", detail: "Starting profile" },
   { src: proof13, client: "Angela Duckworth", metric: "128K followers", detail: "After growth" },
@@ -472,7 +423,6 @@ export function AgencyHome() {
 
     <section id="faq" className="section-shell content-section faq-layout"><SectionHeading label="10 / FAQ" title="Frequently Asked Questions"/><div className="faq-list">{faqs.map(([q,a],i) => <FAQItem key={q} question={q} answer={a} index={i}/>)}</div></section>
 
-    <LegalPolicies/>
   </main><Footer/></>;
 }
 
