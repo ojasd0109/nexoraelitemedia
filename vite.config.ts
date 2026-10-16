@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Deploy to Vercel (custom Hostinger domain can point here via DNS)
+  nitro: {
+    preset: "vercel",
+  },
 });

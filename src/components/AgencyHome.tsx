@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   ArrowDown,
   ArrowRight,
@@ -22,6 +23,17 @@ import {
 } from "lucide-react";
 import heroImage from "@/assets/social-growth-hero.jpg";
 import networkImage from "@/assets/audience-network.jpg";
+import proof11 from "@/assets/client-proof/1.1-angela-reel-4.5m.png";
+import proof12 from "@/assets/client-proof/1.2-angela-profile-6k.png";
+import proof13 from "@/assets/client-proof/1.3-angela-profile-128k.png";
+import proof14 from "@/assets/client-proof/1.4-angela-reel-3.6m.png";
+import proof21 from "@/assets/client-proof/2.1-anna-profile-25k.png";
+import proof22 from "@/assets/client-proof/2.2-anna-profile-2k.png";
+import proof23 from "@/assets/client-proof/2.3-anna-reel-173k.png";
+import proof24 from "@/assets/client-proof/2.4-anna-reel-64k.png";
+import proof31 from "@/assets/client-proof/3.1-creator-reel-791k.png";
+import proof32 from "@/assets/client-proof/3.2-creator-reel-1.4m.png";
+import proof33 from "@/assets/client-proof/3.3-monthly-23.7m.png";
 
 const services = [
   ["01", "Audience Growth", "Help your profile reach new audiences and grow your social media presence."],
@@ -85,7 +97,7 @@ function SectionHeading({ label, title, copy }: { label: string; title: string; 
 
 function Header() {
   const [open, setOpen] = useState(false);
-  const links = [["Services", "#services"], ["Platforms", "#platforms"], ["Packages", "#packages"], ["Results", "#results"], ["Reviews", "#reviews"], ["FAQ", "#faq"]];
+  const links = [["Services", "#services"], ["Platforms", "#platforms"], ["Reviews", "#reviews"], ["FAQ", "#faq"]];
   return <header className="site-header"><div className="nav-wrap">
     <a href="#top" className="brand" aria-label="Nexora Elite Media home"><span className="brand-mark">NE</span><span>Nexora Elite Media</span></a>
     <nav className="desktop-nav" aria-label="Primary navigation">{links.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</nav>
@@ -94,17 +106,132 @@ function Header() {
   </div>{open && <nav className="mobile-nav" aria-label="Mobile navigation">{links.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={16}/></a>)}<a href="#contact" onClick={() => setOpen(false)}>Contact<ArrowRight size={16}/></a></nav>}</header>;
 }
 
-function BeforeAfter() {
-  const [position, setPosition] = useState(48);
-  return <div className="proof-layout">
-    <div className="comparison" style={{ "--split": `${position}%` } as React.CSSProperties}>
-      <div className="proof-panel proof-before"><span>BEFORE</span><strong>2,450</strong><small>Followers</small></div>
-      <div className="proof-panel proof-after"><span>AFTER PROMOTION</span><strong>8,700</strong><small>Followers</small></div>
-      <div className="comparison-line" aria-hidden="true"><span><ChevronLeft/><ChevronRight/></span></div>
-      <input aria-label="Adjust before and after comparison" type="range" min="12" max="88" value={position} onChange={(e) => setPosition(Number(e.target.value))}/>
+const legalPolicies = [
+  {
+    id: "terms-conditions",
+    title: "Terms & Conditions",
+    items: [
+      { label: "Scope of Services & Content Deliverables", text: "The Agency agrees to manage and execute the influencer marketing campaigns as outlined in the specific Campaign Brief or Statement of Work (SOW). Both the Client and the Influencer must strictly adhere to all agreed-upon deadlines, content guidelines, and Federal Trade Commission (FTC) endorsement guidelines (e.g., clear and conspicuous placement of #ad or #sponsored); failure to comply may result in immediate campaign suspension." },
+      { label: "Intellectual Property & Usage Rights", text: "Unless explicitly agreed otherwise in writing, the Influencer retains ownership of the created content, while the Client is granted a non-exclusive, worldwide, royalty-free license to use, repurpose, and amplify the content across their official digital channels for a period of six (6) months following the campaign end date." },
+      { label: "Limitation of Liability & Governing Law", text: "The Agency’s total liability for any claim arising out of these terms shall not exceed the total fees paid by the Client to the Agency for the specific campaign. These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Delaware (or your specific registration state), without regard to conflict of law principles." },
+    ],
+  },
+  {
+    id: "privacy-policy",
+    title: "Privacy Policy",
+    items: [
+      { label: "Information We Collect", text: "We collect personal and professional data necessary to run our marketing operations, including names, email addresses, phone numbers, social media handles, audience demographic metrics, and financial information for processing payments from both Brands and Influencers." },
+      { label: "How We Use Your Data", text: "The collected information is used exclusively to facilitate brand-influencer matchmaking, execute and track marketing campaigns, process billing and payouts, verify social media analytics, and communicate critical updates regarding our services." },
+      { label: "US State Privacy Compliance & User Rights", text: "We comply with applicable US privacy regulations, including the California Consumer Privacy Act (CCPA) and other state privacy laws. We do not sell your personal data; it is shared only with verified third-party processors. Users retain the right to access, delete, opt-out of data sharing, or request the permanent deletion of their personal data from our systems at any time." },
+    ],
+  },
+  {
+    id: "refund-policy",
+    title: "Refund & Cancellation Policy",
+    items: [
+      { label: "Non-Refundable Retainers & Onboarding Fees", text: "All initial strategy development charges, platform onboarding fees, and monthly agency retainers are 100% non-refundable once the onboarding process has begun or work on the campaign strategy has commenced." },
+      { label: "Campaign Cancellation & Creator Commitments", text: "Clients may cancel a campaign by providing a written 30-day notice. However, the Client remains fully liable for any portion of the budget that has already been legally or financially committed to influencers for scheduled content creation and cannot be clawed back." },
+      { label: "Dispute Resolution & Service Credits", text: "Refunds will not be issued for missed influencer performance metrics or organic reach fluctuations. In the event that an influencer fails to deliver a scheduled post entirely, the Agency will work to secure a replacement creator or issue a proportional service credit toward a future campaign." },
+    ],
+  },
+] as const;
+
+function LegalPolicies() {
+  return (
+    <section className="legal-policy-section section-shell" aria-label="Legal policies">
+      {legalPolicies.map((policy) => (
+        <article key={policy.id} id={policy.id} className="legal-policy">
+          <h3>{policy.title}</h3>
+          <ul>
+            {policy.items.map((item) => (
+              <li key={item.label}>
+                <strong>{item.label}:</strong> {item.text}
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+const proofGallery = [
+  { src: proof12, client: "Angela Duckworth", metric: "6.2K followers", detail: "Starting profile" },
+  { src: proof13, client: "Angela Duckworth", metric: "128K followers", detail: "After growth" },
+  { src: proof14, client: "Angela Duckworth", metric: "3.6M views", detail: "98.2K shares · 34.3K likes" },
+  { src: proof11, client: "Angela Duckworth", metric: "4.5M views", detail: "97.6K likes · 173K shares" },
+  { src: proof22, client: "Anna Arman", metric: "2.3K followers", detail: "Starting profile" },
+  { src: proof21, client: "Anna Arman", metric: "25.5K followers", detail: "After growth · verified" },
+  { src: proof24, client: "Anna Arman", metric: "64.9K likes", detail: "74.4K shares · 6.3K reposts" },
+  { src: proof23, client: "Anna Arman", metric: "173K likes", detail: "14.2K reposts · 848 follows" },
+  { src: proof31, client: "Creator campaign", metric: "791K views", detail: "41.7K likes · 685 follows" },
+  { src: proof32, client: "Creator campaign", metric: "1.4M views", detail: "2,023 follows from one reel" },
+  { src: proof33, client: "Creator campaign", metric: "23.7M views", detail: "89.4K new followers · 1 month" },
+] as const;
+
+function ProofGallery() {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    dragFree: true,
+    loop: false,
+  });
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+  const [index, setIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanPrev(emblaApi.canScrollPrev());
+    setCanNext(emblaApi.canScrollNext());
+    setIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  return (
+    <div className="proof-gallery-wrap">
+      <div className="proof-gallery-controls">
+        <span className="carousel-counter proof-counter">
+          {String(index + 1).padStart(2, "0")} / {String(proofGallery.length).padStart(2, "0")}
+        </span>
+        <div className="carousel-buttons proof-buttons">
+          <button aria-label="Previous proof" onClick={() => emblaApi?.scrollPrev()} disabled={!canPrev}>
+            <ChevronLeft size={18} />
+          </button>
+          <button aria-label="Next proof" onClick={() => emblaApi?.scrollNext()} disabled={!canNext}>
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+      <div className="results-gallery proof-gallery" ref={emblaRef}>
+        <div className="results-track">
+          {proofGallery.map((item) => (
+            <figure className="results-slide" key={item.src}>
+              <div className="results-frame">
+                <img src={item.src} alt={`${item.client} — ${item.metric}`} loading="lazy" draggable={false} />
+              </div>
+              <figcaption>
+                <strong>{item.metric}</strong>
+                <span>{item.client}</span>
+                <small>{item.detail}</small>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+      <p className="results-hint proof-hint">Drag or use arrows to browse · Swipe on mobile</p>
     </div>
-    <div className="proof-stats"><div><span>Growth</span><strong>+X Followers</strong></div><div><span>Campaign Period</span><strong>30 Days</strong></div><div className="metric-row"><span>Reach <b>X</b></span><span>Engagement <b>X</b></span></div></div>
-  </div>;
+  );
 }
 
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
@@ -143,6 +270,14 @@ const reviews = [
     role: "Digital Entrepreneur",
     platform: "Multi-Platform / UAE",
     initials: "SA",
+    stars: 5,
+  },
+  {
+    quote: "We finally saw consistent growth instead of random spikes. The campaign structure was clear, the placements were professional, and our audience quality improved week after week.",
+    author: "Jordan Blake",
+    role: "Lifestyle & Brand Creator",
+    platform: "Instagram / Australia",
+    initials: "JB",
     stars: 5,
   },
 ] as const;
@@ -188,27 +323,122 @@ function TestimonialCarousel() {
   );
 }
 
+const CONTACT_EMAIL = "team@nexoraelitemedia.com";
+
 function ContactForm() {
-  const [status, setStatus] = useState<"idle"|"loading"|"success">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const form = new FormData(e.currentTarget); const next: Record<string,string> = {};
-    if (!String(form.get("name") || "").trim()) next["name"] = "Please enter your name.";
-    const email = String(form.get("email") || ""); if (!/^\S+@\S+\.\S+$/.test(email)) next["email"] = "Please enter a valid email.";
-    if (!String(form.get("profile") || "").trim()) next["profile"] = "Please add your profile or channel link.";
-    setErrors(next); if (Object.keys(next).length) return;
-    setStatus("loading"); window.setTimeout(() => setStatus("success"), 650);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
+    const next: Record<string, string> = {};
+    const name = String(form.get("name") || "").trim();
+    const email = String(form.get("email") || "").trim();
+    const platform = String(form.get("platform") || "").trim();
+    const profile = String(form.get("profile") || "").trim();
+    const selectedPackage = String(form.get("package") || "").trim();
+    const goal = String(form.get("goal") || "").trim();
+
+    if (!name) next["name"] = "Please enter your name.";
+    if (!/^\S+@\S+\.\S+$/.test(email)) next["email"] = "Please enter a valid email.";
+    if (!profile) next["profile"] = "Please add your profile or channel link.";
+    setErrors(next);
+    if (Object.keys(next).length) return;
+
+    setStatus("loading");
+    try {
+      const response = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          platform,
+          profile,
+          package: selectedPackage || "Not selected",
+          goal: goal || "Not specified",
+          _subject: `New growth request from ${name}`,
+          _template: "table",
+          _captcha: "false",
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to send");
+      const data = (await response.json()) as { success?: string | boolean };
+      if (!data.success) throw new Error("Failed to send");
+      setStatus("success");
+      formEl.reset();
+    } catch {
+      setStatus("error");
+    }
   }
-  if (status === "success") return <div className="form-success" role="status"><span><Check/></span><h3>Thank you.</h3><p>Your details have been received for this preview.</p><button className="btn btn-secondary" onClick={() => setStatus("idle")}>Send another request</button></div>;
-  return <form onSubmit={submit} noValidate className="contact-form">
-    <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" maxLength={100}/>{errors["name"] && <small>{errors["name"]}</small>}</div>
-    <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" maxLength={255}/>{errors["email"] && <small>{errors["email"]}</small>}</div>
-    <div className="field"><label htmlFor="platform">Social Media Platform</label><select id="platform" name="platform"><option>Instagram</option><option>YouTube</option><option>TikTok</option><option>Facebook</option><option>Other Social Platforms</option></select></div>
-    <div className="field"><label htmlFor="profile">Profile / Channel Link</label><input id="profile" name="profile" type="url" maxLength={500}/>{errors["profile"] && <small>{errors["profile"]}</small>}</div>
-    <div className="field"><label htmlFor="selected-package">Selected Package</label><select id="selected-package" name="package" defaultValue=""><option value="" disabled>Select a package</option>{packages.map(p => <option key={p.name}>{p.name}</option>)}</select></div>
-    <div className="field field-wide"><label htmlFor="goal">Growth Goal</label><textarea id="goal" name="goal" rows={4} maxLength={1000}/></div>
-    <button className="btn btn-primary field-wide" type="submit" disabled={status === "loading"}>{status === "loading" ? "Sending…" : <>Get Started <ArrowRight size={17}/></>}</button>
-  </form>;
+
+  if (status === "success") {
+    return (
+      <div className="form-success" role="status">
+        <span><Check /></span>
+        <h3>Thank you.</h3>
+        <p>Your details have been sent to {CONTACT_EMAIL}. We’ll be in touch shortly.</p>
+        <button className="btn btn-secondary" onClick={() => setStatus("idle")}>Send another request</button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="contact-form">
+      <div className="field">
+        <label htmlFor="name">Name</label>
+        <input id="name" name="name" maxLength={100} autoComplete="name" />
+        {errors["name"] && <small>{errors["name"]}</small>}
+      </div>
+      <div className="field">
+        <label htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" maxLength={255} autoComplete="email" />
+        {errors["email"] && <small>{errors["email"]}</small>}
+      </div>
+      <div className="field">
+        <label htmlFor="platform">Social Media Platform</label>
+        <select id="platform" name="platform" defaultValue="Instagram">
+          <option>Instagram</option>
+          <option>YouTube</option>
+          <option>TikTok</option>
+          <option>Facebook</option>
+          <option>Other Social Platforms</option>
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="profile">Profile / Channel Link</label>
+        <input id="profile" name="profile" type="url" maxLength={500} placeholder="https://" />
+        {errors["profile"] && <small>{errors["profile"]}</small>}
+      </div>
+      <div className="field">
+        <label htmlFor="selected-package">Selected Package</label>
+        <select id="selected-package" name="package" defaultValue="">
+          <option value="" disabled>Select a package</option>
+          {packages.map((p) => (
+            <option key={p.name}>{p.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="field field-wide">
+        <label htmlFor="goal">Growth Goal</label>
+        <textarea id="goal" name="goal" rows={4} maxLength={1000} />
+      </div>
+      {status === "error" && (
+        <p className="form-error field-wide" role="alert">
+          Something went wrong. Please try again or email us at {CONTACT_EMAIL}.
+        </p>
+      )}
+      <button className="btn btn-primary field-wide" type="submit" disabled={status === "loading"}>
+        {status === "loading" ? "Sending…" : <>Get Started <ArrowRight size={17} /></>}
+      </button>
+    </form>
+  );
 }
 
 export function AgencyHome() {
@@ -221,7 +451,7 @@ export function AgencyHome() {
   function choosePackage(name: string) { window.setTimeout(() => { const select = document.querySelector<HTMLSelectElement>("#selected-package"); if (select) { select.value = name; select.dispatchEvent(new Event("change", { bubbles: true })); } }, 50); }
   return <><Header/><main ref={mainRef} id="top">
     <section className="hero section-shell">
-      <div className="hero-copy reveal"><p className="eyebrow">Social Media Growth & Promotion</p><h1>Grow Your Social Media.<br/><em>Reach More People.</em><br/>Build Your Brand.</h1><p>Strategic social media promotion and growth solutions designed to increase your reach, audience exposure, engagement and online presence.</p><div className="hero-actions"><ButtonLink href="#contact">Start Growing <ArrowRight size={17}/></ButtonLink><ButtonLink href="#packages" secondary>View Packages <ArrowDown size={17}/></ButtonLink></div></div>
+      <div className="hero-copy reveal"><p className="eyebrow">Social Media Growth & Promotion</p><h1>Grow Your Social Media.<br/><em>Reach More People.</em><br/>Build Your Brand.</h1><p>Strategic social media promotion and growth solutions designed to increase your reach, audience exposure, engagement and online presence.</p><div className="hero-actions"><ButtonLink href="#contact">Start Growing <ArrowRight size={17}/></ButtonLink><ButtonLink href="#contact" secondary>Get Started <ArrowDown size={17}/></ButtonLink></div></div>
       <div className="hero-visual reveal"><img src={heroImage} alt="A content creator reviewing campaign insights on a tablet" width={1536} height={960}/><div className="floating-stat"><span>Audience network</span><strong>20M+</strong><small>Across multiple platforms</small></div></div>
       <div className="platform-strip" aria-label="Supported platforms"><span>Instagram</span><span>YouTube</span><span>TikTok</span><span>Facebook</span><span>Other Social Platforms</span></div>
     </section>
@@ -234,10 +464,6 @@ export function AgencyHome() {
 
     <section id="network" className="section-shell content-section network"><div className="network-image reveal"><img src={networkImage} alt="Abstract audience growth visualization" loading="lazy" width={1200} height={1008}/></div><div className="network-copy reveal"><p className="eyebrow">04 / Your 20M+ audience network</p><h2>Reach a <em>20M+</em> Audience Network</h2><p>Get your content in front of a large, established social media audience network and increase your opportunities for profile discovery, engagement and audience growth.</p><div className="network-list"><div><strong>20M+</strong><span>Audience Network</span></div><div><strong>Multiple Platforms</strong><span>Social media promotional exposure across multiple platforms.</span></div><div><strong>Large-Scale Exposure</strong><span>Increase your content’s visibility through our promotional network.</span></div><div><strong>Content Promotion</strong><span>Promote your posts, stories, reels and other eligible content.</span></div></div></div></section>
 
-    <section id="packages" className="packages-section"><div className="section-shell content-section"><SectionHeading label="05 / Special promo packages" title="Social Media Growth Packages" copy="Real Growth. Real Exposure. Real Opportunities."/><div className="package-grid">{packages.map((pkg,i) => <article key={pkg.name} className={`package-card ${pkg.tone} reveal ${i === 2 ? "package-featured" : ""}`}><div className="package-top"><span>{String(i+1).padStart(2,"0")}</span>{i === 2 && <b>Popular</b>}</div><h3>{pkg.name}</h3><div className="price">{pkg.price}</div><p>{pkg.target}</p><ul>{pkg.features.map(f => <li key={f}><Check size={15}/>{f}</li>)}</ul><ButtonLink href="#contact" secondary onClick={() => choosePackage(pkg.name)}>Choose {pkg.name[0] + pkg.name.slice(1).toLowerCase()} <ArrowRight size={16}/></ButtonLink></article>)}</div><div className="package-note"><strong>One-Time Payment</strong><span>Permanent promotional posts remain according to the terms of the selected package.</span></div></div></section>
-
-    <section id="results" className="section-shell content-section"><SectionHeading label="06 / Before & after — client proof" title="Real Client Growth" copy="See how our promotional campaigns have helped clients increase their social media exposure and audience growth."/><BeforeAfter/></section>
-
     <TestimonialCarousel/>
 
     <section id="opportunities" className="opportunity-section"><div className="section-shell opportunity-container"><SectionHeading label="08 / Monetization & brand opportunities" title="Turn Your Social Presence Into Opportunities" copy="We help you identify available monetization opportunities across supported platforms and assist with the required setup where applicable."/><div className="opportunity-grid">{opportunities.map(([t,d],i) => <article className="opportunity reveal" key={t}><div className="opportunity-icon">{i===0?<BarChart3 size={20}/>:i===1?<Sparkles size={20}/>:i===2?<Target size={20}/>:<TrendingUp size={20}/>}</div><div className="opportunity-body"><h3>{t}</h3><p>{d}</p></div></article>)}</div></div></section>
@@ -245,9 +471,11 @@ export function AgencyHome() {
     <section id="contact" className="contact-section"><div className="section-shell content-section contact-layout"><div><p className="eyebrow">09 / Get started</p><h2>Ready to Grow Your Social Media?</h2><p>Choose your package and start your social media promotion journey with Nexora Elite Media today.</p><div className="contact-points"><span><Users/> Tailored growth strategy</span><span><Zap/> Structured promotion</span><span><BarChart3/> Clear campaign insights</span><span className="contact-address"><MapPin/> 1001 S Main St, Ste 500, Kalispell, MT 59901-1498</span></div></div><ContactForm/></div></section>
 
     <section id="faq" className="section-shell content-section faq-layout"><SectionHeading label="10 / FAQ" title="Frequently Asked Questions"/><div className="faq-list">{faqs.map(([q,a],i) => <FAQItem key={q} question={q} answer={a} index={i}/>)}</div></section>
+
+    <LegalPolicies/>
   </main><Footer/></>;
 }
 
 function Footer() {
-  return <footer className="footer"><div className="section-shell"><div className="footer-top"><div><a href="#top" className="brand brand-footer"><span className="brand-mark">NE</span><span>Nexora Elite Media</span></a><p>Social Media Growth & Strategic Promotion</p><address className="footer-address"><MapPin size={15}/><span>1001 S MAIN ST, STE 500<br/>KALISPELL, MT 59901-1498</span></address></div><div><h3>Quick Links</h3><nav><a href="#top">Home</a><a href="#services">Services</a><a href="#platforms">Platforms</a><a href="#packages">Packages</a><a href="#results">Results</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav></div><div><h3>Legal</h3><nav><span>Terms & Conditions</span><span>Privacy Policy</span><span>Refund Policy</span></nav></div></div><div className="footer-bottom"><span>© 2026 Nexora Elite Media LLC. All Rights Reserved.</span><span>Built for meaningful growth.</span></div></div></footer>;
+  return <footer className="footer"><div className="section-shell"><div className="footer-top"><div><a href="#top" className="brand brand-footer"><span className="brand-mark">NE</span><span>Nexora Elite Media</span></a><p>Social Media Growth & Strategic Promotion</p><address className="footer-address"><MapPin size={15}/><span>1001 S MAIN ST, STE 500<br/>KALISPELL, MT 59901-1498</span></address></div><div><h3>Quick Links</h3><nav><a href="#top">Home</a><a href="#services">Services</a><a href="#platforms">Platforms</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav></div><div><h3>Legal</h3><nav><a href="#terms-conditions">Terms & Conditions</a><a href="#privacy-policy">Privacy Policy</a><a href="#refund-policy">Refund Policy</a></nav></div></div><div className="footer-bottom"><span>© 2026 Nexora Elite Media LLC. All Rights Reserved.</span><span>Built for meaningful growth.</span></div></div></footer>;
 }
